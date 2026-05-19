@@ -1,17 +1,23 @@
 # AEON Bank — Transaction History
 
-A React Native mobile app that displays a list of banking transactions and allows users to view transaction details and share them externally.
+A React Native mobile app that displays a list of banking transactions with filtering, sorting, and pagination. Users can view full transaction details and share them externally.
 
 ---
 
 ## Features
 
-- Transaction list with transfer name, recipient, date, and colour-coded amount
-- Transaction detail screen showing reference ID, date, recipient, and amount
+- Transaction list grouped by month with sticky section headers
+- Filter by transaction type — All, Credits, Debits
+- Sort by date (newest / oldest) or amount (highest / lowest)
+- Pagination — loads 5 transactions at a time, infinite scroll
+- Pull-to-refresh
+- Skeleton loading state on first load
+- Transaction detail screen with reference ID, date, recipient, and amount
 - Native share sheet to export transaction details to any app
-- Pull-to-refresh on the transaction list
+- Empty state when no transactions match the active filter
 - Zustand-powered state management
 - Fully typed with TypeScript — zero `any`
+- Pre-commit lint gate via husky and lint-staged
 
 ---
 
@@ -96,18 +102,37 @@ npm run android
 
 ---
 
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode
+npm test -- --watch
+
+# With coverage report
+npm test -- --coverage
+```
+
+Tests cover:
+- `formatDate`, `formatCurrency`, `isDebit`, `groupByMonth` utilities
+- Zustand store — loading, filtering, sorting, pagination, and selection
+
+---
+
 ## Project Structure
 
 ```
 src/
   features/
     transactions/
-      components/     # TransactionCard, AmountBadge
-      data/           # Mock transaction data
+      components/     # TransactionCard, AmountBadge, FilterBar, SectionHeader, SkeletonCard
+      data/           # Mock transaction data (12 transactions)
       screens/        # TransactionListScreen, TransactionDetailScreen
-      store/          # Zustand store
-      types/          # Transaction interface, RootStackParamList
-      utils/          # Date and currency formatters
+      store/          # Zustand store with filters, sort, and pagination
+      types/          # Transaction, FilterType, SortBy, RootStackParamList
+      utils/          # Date, currency formatters and groupByMonth
   navigation/         # RootNavigator (NativeStackNavigator)
   theme/              # Colors, spacing, typography constants
 ```
@@ -119,3 +144,5 @@ src/
 ```bash
 npm run lint
 ```
+
+Lint also runs automatically on staged files before every commit via husky.
