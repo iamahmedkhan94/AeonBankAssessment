@@ -40,7 +40,7 @@ export function TransactionDetailScreen({ navigation, route }: Props) {
   const { refId } = route.params;
 
   const transaction = useTransactionStore(s =>
-    s.transactions.find(t => t.refId === refId),
+    s.allTransactions.find((t: { refId: string }) => t.refId === refId),
   );
 
   const handleShare = useCallback(async () => {
