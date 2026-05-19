@@ -1,5 +1,12 @@
 import { format, parseISO } from 'date-fns';
 
+import type { Transaction } from '../types';
+
+export interface TransactionSection {
+  title: string;
+  data: Transaction[];
+}
+
 export function formatDate(isoString: string): string {
   return format(parseISO(isoString), 'd MMM yyyy, h:mm a');
 }
@@ -15,4 +22,18 @@ export function formatCurrency(amount: number): string {
 
 export function isDebit(amount: number): boolean {
   return amount < 0;
+}
+
+export function groupByMonth(transactions: Transaction[]): TransactionSection[] {
+  const map = new Map<string, Transaction[]>();
+
+  for (const transaction of transactions) {
+    const key = format(parseISO(transaction.transferDate), 'MMMM yyyy');
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+    map.get(key)!.push(transaction);
+  }
+
+  return Array.from(map.entries()).map(([title, data]) => ({ title, data }));
 }

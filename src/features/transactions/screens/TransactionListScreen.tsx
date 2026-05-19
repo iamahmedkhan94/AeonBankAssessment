@@ -1,12 +1,12 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
+  SectionList,
   StyleSheet,
   Text,
   View,
-  type ListRenderItemInfo,
+  type SectionListRenderItemInfo,
 } from 'react-native';
 
 import { colors } from '@theme/colors';
@@ -14,10 +14,12 @@ import { spacing } from '@theme/spacing';
 import { typography } from '@theme/typography';
 
 import { FilterBar } from '../components/FilterBar';
+import { SectionHeader } from '../components/SectionHeader';
 import { SkeletonCard } from '../components/SkeletonCard';
 import { TransactionCard } from '../components/TransactionCard';
 import { useTransactionStore } from '../store/useTransactionStore';
 import type { FilterType, RootStackParamList, SortBy, Transaction } from '../types';
+import { groupByMonth, type TransactionSection } from '../utils/formatters';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionList'>;
 
@@ -38,6 +40,11 @@ export function TransactionListScreen({ navigation }: Props) {
     loadTransactions();
   }, [loadTransactions]);
 
+  const sections = useMemo(
+    () => groupByMonth(visibleTransactions),
+    [visibleTransactions],
+  );
+
   const handlePress = useCallback(
     (refId: string) => {
       selectTransaction(refId);
@@ -57,10 +64,17 @@ export function TransactionListScreen({ navigation }: Props) {
   );
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Transaction>) => (
+    ({ item }: SectionListRenderItemInfo<Transaction, TransactionSection>) => (
       <TransactionCard transaction={item} onPress={() => handlePress(item.refId)} />
     ),
     [handlePress],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: TransactionSection }) => (
+      <SectionHeader title={section.title} count={section.data.length} />
+    ),
+    [],
   );
 
   const keyExtractor = useCallback((item: Transaction) => item.refId, []);
@@ -128,10 +142,11 @@ export function TransactionListScreen({ navigation }: Props) {
   }
 
   return (
-    <FlatList
-      data={visibleTransactions}
+    <SectionList
+      sections={sections}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={renderFooter}
       ListEmptyComponent={renderEmpty}
@@ -141,6 +156,7 @@ export function TransactionListScreen({ navigation }: Props) {
       refreshing={isLoading}
       onEndReached={loadMore}
       onEndReachedThreshold={0.3}
+      stickySectionHeadersEnabled
     />
   );
 }
