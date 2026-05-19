@@ -35,6 +35,20 @@ A React Native mobile app that displays a list of banking transactions with filt
 
 ---
 
+## Screenshots
+
+### iOS
+| Transaction List | Transaction Detail | Share |
+|---|---|---|
+| ![iOS List](screenshots/ios-list.png) | ![iOS Detail](screenshots/ios-details.png) | ![iOS Share](screenshots/ios-share.png) |
+
+### Android
+| Transaction List | Transaction Detail | Share |
+|---|---|---|
+| ![Android List](screenshots/android-list.png) | ![Android Detail](screenshots/android-details.png) | ![Android Share](screenshots/android-share.png) |
+
+---
+
 ## Architecture
 
 ```
