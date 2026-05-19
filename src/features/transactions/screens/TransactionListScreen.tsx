@@ -12,6 +12,7 @@ import { colors } from '@theme/colors';
 import { spacing } from '@theme/spacing';
 import { typography } from '@theme/typography';
 
+import { SkeletonCard } from '../components/SkeletonCard';
 import { TransactionCard } from '../components/TransactionCard';
 import { useTransactionStore } from '../store/useTransactionStore';
 import type { RootStackParamList, Transaction } from '../types';
@@ -20,6 +21,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TransactionList'>;
 
 export function TransactionListScreen({ navigation }: Props) {
   const transactions = useTransactionStore(s => s.transactions);
+  const isLoading = useTransactionStore(s => s.isLoading);
   const loadTransactions = useTransactionStore(s => s.loadTransactions);
   const selectTransaction = useTransactionStore(s => s.selectTransaction);
 
@@ -52,6 +54,16 @@ export function TransactionListScreen({ navigation }: Props) {
 
   const keyExtractor = useCallback((item: Transaction) => item.refId, []);
 
+  if (isLoading) {
+    return (
+      <View style={styles.skeletonContainer}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </View>
+    );
+  }
+
   if (transactions.length === 0) {
     return (
       <View style={styles.empty}>
@@ -81,6 +93,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingVertical: spacing.sm,
     flexGrow: 1,
+  },
+  skeletonContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingVertical: spacing.sm,
   },
   empty: {
     flex: 1,

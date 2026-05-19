@@ -6,6 +6,7 @@ import type { Transaction } from '@features/transactions/types';
 interface TransactionState {
   transactions: Transaction[];
   selectedRefId: string | null;
+  isLoading: boolean;
   loadTransactions: () => void;
   selectTransaction: (refId: string) => void;
   getSelectedTransaction: () => Transaction | undefined;
@@ -14,9 +15,13 @@ interface TransactionState {
 export const useTransactionStore = create<TransactionState>((set, get) => ({
   transactions: [],
   selectedRefId: null,
+  isLoading: false,
 
   loadTransactions: () => {
-    set({ transactions: mockTransactions });
+    set({ isLoading: true });
+    setTimeout(() => {
+      set({ transactions: mockTransactions, isLoading: false });
+    }, 1500);
   },
 
   selectTransaction: (refId: string) => {
