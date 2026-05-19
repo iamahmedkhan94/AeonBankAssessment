@@ -22,8 +22,19 @@ module.exports = {
     'import/no-duplicates': 'error',
     'import/no-unresolved': 'off',
     'import/namespace': 'off',
-    '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+    'react/no-unstable-nested-components': ['warn', { allowAsProps: true }],
     'no-console': 'warn',
   },
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'error',
+        '@typescript-eslint/consistent-type-imports': [
+          'error',
+          { prefer: 'type-imports' },
+        ],
+      },
+    },
+  ],
 };
