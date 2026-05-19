@@ -9,9 +9,10 @@ A React Native mobile app that displays a list of banking transactions with filt
 - Transaction list grouped by month with sticky section headers
 - Filter by transaction type — All, Credits, Debits
 - Sort by date (newest / oldest) or amount (highest / lowest)
-- Pagination — loads 5 transactions at a time, infinite scroll
+- Pagination — loads 5 transactions at a time via infinite scroll
 - Pull-to-refresh
 - Skeleton loading state on first load
+- Error state with user-facing message when the API call fails
 - Transaction detail screen with reference ID, date, recipient, and amount
 - Native share sheet to export transaction details to any app
 - Empty state when no transactions match the active filter
@@ -31,6 +32,27 @@ A React Native mobile app that displays a list of banking transactions with filt
 | Navigation | React Navigation 7 (native-stack) |
 | Date formatting | date-fns |
 | Share | React Native built-in Share API |
+
+---
+
+## Architecture
+
+```
+src/
+  features/
+    transactions/
+      api/            # API service layer (transactionApi)
+      components/     # TransactionCard, AmountBadge, FilterBar, SectionHeader, SkeletonCard
+      data/           # Mock transaction data (12 transactions)
+      screens/        # TransactionListScreen, TransactionDetailScreen
+      store/          # Zustand store — loading, filtering, sorting, pagination, error
+      types/          # Transaction, FilterType, SortBy, RootStackParamList
+      utils/          # formatDate, formatCurrency, isDebit, groupByMonth
+  navigation/         # RootNavigator (NativeStackNavigator)
+  theme/              # Colors, spacing, typography constants
+```
+
+The API layer (`transactionApi.ts`) is the single data-fetching boundary. The store and screens have no knowledge of where data comes from — swapping the mock for a real endpoint only requires changing that one file.
 
 ---
 
@@ -69,7 +91,7 @@ Then install the native pods:
 bundle exec pod install
 ```
 
-> You only need to re-run `pod install` when native dependencies change.
+> Re-run `pod install` any time native dependencies change.
 
 ---
 
@@ -81,7 +103,7 @@ Start the Metro bundler in one terminal:
 npm start
 ```
 
-Then in a second terminal, run the platform you want:
+Then in a second terminal, build for your target platform:
 
 ### iOS
 
@@ -95,7 +117,7 @@ npm run ios
 npm run android
 ```
 
-> If you have recently changed `babel.config.js`, reset the Metro cache:
+> If you recently changed `babel.config.js`, reset the Metro cache first:
 > ```bash
 > npm start -- --reset-cache
 > ```
@@ -115,27 +137,22 @@ npm test -- --watch
 npm test -- --coverage
 ```
 
-Tests cover:
-- `formatDate`, `formatCurrency`, `isDebit`, `groupByMonth` utilities
-- Zustand store — loading, filtering, sorting, pagination, and selection
+41 tests across 3 suites:
+- `formatters.test.ts` — formatDate, formatCurrency, isDebit, groupByMonth
+- `useTransactionStore.test.ts` — loading, error handling, filtering, sorting, pagination, selection
+- `App.test.tsx` — smoke test with mocked navigation and safe area
 
 ---
 
-## Project Structure
+## CI
 
-```
-src/
-  features/
-    transactions/
-      components/     # TransactionCard, AmountBadge, FilterBar, SectionHeader, SkeletonCard
-      data/           # Mock transaction data (12 transactions)
-      screens/        # TransactionListScreen, TransactionDetailScreen
-      store/          # Zustand store with filters, sort, and pagination
-      types/          # Transaction, FilterType, SortBy, RootStackParamList
-      utils/          # Date, currency formatters and groupByMonth
-  navigation/         # RootNavigator (NativeStackNavigator)
-  theme/              # Colors, spacing, typography constants
-```
+GitHub Actions runs on every push and pull request to `main`:
+
+1. Install dependencies (`npm ci`)
+2. Lint (`npm run lint`)
+3. Test (`npm test`)
+
+For CD, the pipeline is structured to support adding Fastlane or EAS Build to produce signed builds and distribute to TestFlight and Firebase App Distribution on merge to `main`.
 
 ---
 
@@ -145,4 +162,4 @@ src/
 npm run lint
 ```
 
-Lint also runs automatically on staged files before every commit via husky.
+ESLint also runs automatically on staged `.ts` and `.tsx` files before every commit via husky and lint-staged.
