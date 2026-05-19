@@ -54,6 +54,7 @@ export function FilterBar({ filterType, sortBy, onFilterTypeChange, onSortByChan
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.row}
+        nestedScrollEnabled
       >
         {FILTER_OPTIONS.map(opt => (
           <FilterChip

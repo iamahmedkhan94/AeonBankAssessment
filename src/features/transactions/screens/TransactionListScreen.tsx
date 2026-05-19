@@ -112,70 +112,59 @@ export function TransactionListScreen({ navigation }: Props) {
     );
   }, [isLoading]);
 
-  const renderHeader = useCallback(
-    () => (
+  const renderBody = () => {
+    if (error) {
+      return (
+        <View style={styles.centered}>
+          <Text style={typography.heading2}>Something went wrong</Text>
+          <Text style={[typography.bodySmall, styles.emptySubtitle]}>{error}</Text>
+        </View>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <View style={styles.skeletonContainer}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </View>
+      );
+    }
+
+    return (
+      <SectionList
+        sections={sections}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmpty}
+        style={styles.sectionList}
+        contentContainerStyle={[
+          styles.list,
+          visibleTransactions.length === 0 && styles.listEmpty,
+        ]}
+        showsVerticalScrollIndicator={false}
+        onRefresh={loadTransactions}
+        refreshing={isLoading}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        stickySectionHeadersEnabled
+      />
+    );
+  };
+
+  return (
+    <View style={styles.screen}>
       <FilterBar
         filterType={filterType}
         sortBy={sortBy}
         onFilterTypeChange={handleFilterTypeChange}
         onSortByChange={handleSortByChange}
       />
-    ),
-    [filterType, sortBy, handleFilterTypeChange, handleSortByChange],
-  );
-
-  if (error) {
-    return (
-      <View style={styles.screen}>
-        <FilterBar
-          filterType={filterType}
-          sortBy={sortBy}
-          onFilterTypeChange={handleFilterTypeChange}
-          onSortByChange={handleSortByChange}
-        />
-        <View style={styles.empty}>
-          <Text style={typography.heading2}>Something went wrong</Text>
-          <Text style={[typography.bodySmall, styles.emptySubtitle]}>{error}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <View style={styles.screen}>
-        <FilterBar
-          filterType={filterType}
-          sortBy={sortBy}
-          onFilterTypeChange={handleFilterTypeChange}
-          onSortByChange={handleSortByChange}
-        />
-        <View style={styles.skeletonContainer}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <SectionList
-      sections={sections}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      ListHeaderComponent={renderHeader}
-      ListFooterComponent={renderFooter}
-      ListEmptyComponent={renderEmpty}
-      contentContainerStyle={styles.list}
-      showsVerticalScrollIndicator={false}
-      onRefresh={loadTransactions}
-      refreshing={isLoading}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.3}
-      stickySectionHeadersEnabled
-    />
+      {renderBody()}
+    </View>
   );
 }
 
@@ -184,12 +173,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  sectionList: {
+    flex: 1,
+  },
   list: {
     backgroundColor: colors.background,
+    paddingBottom: spacing.lg,
+  },
+  listEmpty: {
     flexGrow: 1,
   },
   skeletonContainer: {
+    flex: 1,
     paddingVertical: spacing.sm,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footer: {
     alignItems: 'center',

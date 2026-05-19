@@ -6,6 +6,8 @@ import { transactionApi } from '../api/transactionApi';
 
 const PAGE_SIZE = 5;
 
+const INITIAL_PAGES = 2;
+
 function applyFiltersAndSort(
   transactions: Transaction[],
   filterType: FilterType,
@@ -85,13 +87,13 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         response.data,
         filterType,
         sortBy,
-        1,
+        INITIAL_PAGES,
       );
       set({
         allTransactions: response.data,
         visibleTransactions,
         hasMore,
-        page: 1,
+        page: INITIAL_PAGES,
         isLoading: false,
       });
     } catch {
@@ -119,14 +121,24 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
   setFilterType: (filterType: FilterType) => {
     const { allTransactions, sortBy } = get();
-    const { visibleTransactions, hasMore } = buildVisible(allTransactions, filterType, sortBy, 1);
-    set({ filterType, visibleTransactions, hasMore, page: 1 });
+    const { visibleTransactions, hasMore } = buildVisible(
+      allTransactions,
+      filterType,
+      sortBy,
+      INITIAL_PAGES,
+    );
+    set({ filterType, visibleTransactions, hasMore, page: INITIAL_PAGES });
   },
 
   setSortBy: (sortBy: SortBy) => {
     const { allTransactions, filterType } = get();
-    const { visibleTransactions, hasMore } = buildVisible(allTransactions, filterType, sortBy, 1);
-    set({ sortBy, visibleTransactions, hasMore, page: 1 });
+    const { visibleTransactions, hasMore } = buildVisible(
+      allTransactions,
+      filterType,
+      sortBy,
+      INITIAL_PAGES,
+    );
+    set({ sortBy, visibleTransactions, hasMore, page: INITIAL_PAGES });
   },
 
   selectTransaction: (refId: string) => {

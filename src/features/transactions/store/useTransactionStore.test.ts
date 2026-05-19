@@ -52,10 +52,11 @@ describe('loadTransactions', () => {
     expect(useTransactionStore.getState().isLoading).toBe(false);
   });
 
-  it('shows the first page of results after loading', async () => {
+  it('loads two pages of results after loading', async () => {
     await useTransactionStore.getState().loadTransactions();
     const { visibleTransactions } = useTransactionStore.getState();
-    expect(visibleTransactions.length).toBeLessThanOrEqual(5);
+    expect(visibleTransactions.length).toBeLessThanOrEqual(10);
+    expect(visibleTransactions.length).toBeGreaterThan(5);
   });
 
   it('sets error state when the API call fails', async () => {
@@ -90,15 +91,15 @@ describe('setFilterType', () => {
     expect(visibleTransactions.every(t => t.amount < 0)).toBe(true);
   });
 
-  it('does not show more items per page than the page size', () => {
+  it('loads two pages worth of items when filter changes', () => {
     useTransactionStore.getState().setFilterType('credit');
     const { visibleTransactions } = useTransactionStore.getState();
-    expect(visibleTransactions.length).toBeLessThanOrEqual(5);
+    expect(visibleTransactions.length).toBeLessThanOrEqual(CREDIT_COUNT);
   });
 
-  it('sets hasMore true when filtered results exceed one page', () => {
+  it('sets hasMore true when filtered results exceed two pages', () => {
     useTransactionStore.getState().setFilterType('credit');
-    expect(useTransactionStore.getState().hasMore).toBe(CREDIT_COUNT > 5);
+    expect(useTransactionStore.getState().hasMore).toBe(CREDIT_COUNT > 10);
   });
 
   it('sets hasMore false when all debit results fit on one page', () => {
@@ -106,10 +107,10 @@ describe('setFilterType', () => {
     expect(useTransactionStore.getState().hasMore).toBe(DEBIT_COUNT > 5);
   });
 
-  it('resets page to 1 when filter changes', () => {
+  it('resets page to INITIAL_PAGES when filter changes', () => {
     useTransactionStore.setState({ page: 3 });
     useTransactionStore.getState().setFilterType('credit');
-    expect(useTransactionStore.getState().page).toBe(1);
+    expect(useTransactionStore.getState().page).toBe(2);
   });
 });
 
@@ -165,10 +166,10 @@ describe('setSortBy', () => {
     }
   });
 
-  it('resets page to 1 when sort changes', () => {
-    useTransactionStore.setState({ page: 2 });
+  it('resets page to INITIAL_PAGES when sort changes', () => {
+    useTransactionStore.setState({ page: 3 });
     useTransactionStore.getState().setSortBy('date_asc');
-    expect(useTransactionStore.getState().page).toBe(1);
+    expect(useTransactionStore.getState().page).toBe(2);
   });
 });
 
