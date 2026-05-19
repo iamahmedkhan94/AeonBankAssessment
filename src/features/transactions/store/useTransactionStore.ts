@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 
-import { mockTransactions } from '@features/transactions/data/mockTransactions';
 import type { FilterType, SortBy, Transaction } from '@features/transactions/types';
+
+import { transactionApi } from '../api/transactionApi';
 
 const PAGE_SIZE = 5;
 
@@ -31,25 +32,6 @@ function applyFiltersAndSort(
   return result;
 }
 
-interface TransactionState {
-  allTransactions: Transaction[];
-  visibleTransactions: Transaction[];
-  isLoading: boolean;
-  isLoadingMore: boolean;
-  page: number;
-  hasMore: boolean;
-  filterType: FilterType;
-  sortBy: SortBy;
-  selectedRefId: string | null;
-
-  loadTransactions: () => void;
-  loadMore: () => void;
-  setFilterType: (filterType: FilterType) => void;
-  setSortBy: (sortBy: SortBy) => void;
-  selectTransaction: (refId: string) => void;
-  getSelectedTransaction: () => Transaction | undefined;
-}
-
 function buildVisible(
   all: Transaction[],
   filterType: FilterType,
@@ -62,35 +44,59 @@ function buildVisible(
   return { visibleTransactions, hasMore };
 }
 
+interface TransactionState {
+  allTransactions: Transaction[];
+  visibleTransactions: Transaction[];
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: string | null;
+  page: number;
+  hasMore: boolean;
+  filterType: FilterType;
+  sortBy: SortBy;
+  selectedRefId: string | null;
+
+  loadTransactions: () => Promise<void>;
+  loadMore: () => void;
+  setFilterType: (filterType: FilterType) => void;
+  setSortBy: (sortBy: SortBy) => void;
+  selectTransaction: (refId: string) => void;
+  getSelectedTransaction: () => Transaction | undefined;
+}
+
 export const useTransactionStore = create<TransactionState>((set, get) => ({
   allTransactions: [],
   visibleTransactions: [],
   isLoading: false,
   isLoadingMore: false,
+  error: null,
   page: 1,
   hasMore: false,
   filterType: 'all',
   sortBy: 'date_desc',
   selectedRefId: null,
 
-  loadTransactions: () => {
-    set({ isLoading: true });
-    setTimeout(() => {
+  loadTransactions: async () => {
+    set({ isLoading: true, error: null });
+    try {
       const { filterType, sortBy } = get();
+      const response = await transactionApi.fetchTransactions();
       const { visibleTransactions, hasMore } = buildVisible(
-        mockTransactions,
+        response.data,
         filterType,
         sortBy,
         1,
       );
       set({
-        allTransactions: mockTransactions,
+        allTransactions: response.data,
         visibleTransactions,
         hasMore,
         page: 1,
         isLoading: false,
       });
-    }, 1500);
+    } catch {
+      set({ isLoading: false, error: 'Unable to load transactions. Please try again.' });
+    }
   },
 
   loadMore: () => {

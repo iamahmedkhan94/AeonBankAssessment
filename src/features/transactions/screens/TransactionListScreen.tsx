@@ -28,6 +28,7 @@ export function TransactionListScreen({ navigation }: Props) {
   const isLoading = useTransactionStore(s => s.isLoading);
   const isLoadingMore = useTransactionStore(s => s.isLoadingMore);
   const hasMore = useTransactionStore(s => s.hasMore);
+  const error = useTransactionStore(s => s.error);
   const filterType = useTransactionStore(s => s.filterType);
   const sortBy = useTransactionStore(s => s.sortBy);
   const loadTransactions = useTransactionStore(s => s.loadTransactions);
@@ -122,6 +123,23 @@ export function TransactionListScreen({ navigation }: Props) {
     ),
     [filterType, sortBy, handleFilterTypeChange, handleSortByChange],
   );
+
+  if (error) {
+    return (
+      <View style={styles.screen}>
+        <FilterBar
+          filterType={filterType}
+          sortBy={sortBy}
+          onFilterTypeChange={handleFilterTypeChange}
+          onSortByChange={handleSortByChange}
+        />
+        <View style={styles.empty}>
+          <Text style={typography.heading2}>Something went wrong</Text>
+          <Text style={[typography.bodySmall, styles.emptySubtitle]}>{error}</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (isLoading) {
     return (

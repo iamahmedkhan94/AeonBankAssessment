@@ -1,6 +1,17 @@
+import { transactionApi } from '../api/transactionApi';
 import { mockTransactions } from '../data/mockTransactions';
 
 import { useTransactionStore } from './useTransactionStore';
+
+jest.mock('../api/transactionApi', () => ({
+  transactionApi: {
+    fetchTransactions: jest.fn(),
+  },
+}));
+
+const mockFetch = transactionApi.fetchTransactions as jest.MockedFunction<
+  typeof transactionApi.fetchTransactions
+>;
 
 const CREDIT_COUNT = mockTransactions.filter(t => t.amount > 0).length;
 const DEBIT_COUNT = mockTransactions.filter(t => t.amount < 0).length;
@@ -21,11 +32,7 @@ beforeEach(() => {
 
 describe('loadTransactions', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
+    mockFetch.mockResolvedValue({ data: mockTransactions });
   });
 
   it('sets isLoading to true immediately', () => {
@@ -33,25 +40,29 @@ describe('loadTransactions', () => {
     expect(useTransactionStore.getState().isLoading).toBe(true);
   });
 
-  it('populates allTransactions after the timeout resolves', () => {
-    useTransactionStore.getState().loadTransactions();
-    jest.runAllTimers();
+  it('populates allTransactions after the promise resolves', async () => {
+    await useTransactionStore.getState().loadTransactions();
     expect(useTransactionStore.getState().allTransactions).toHaveLength(
       mockTransactions.length,
     );
   });
 
-  it('sets isLoading to false after the timeout resolves', () => {
-    useTransactionStore.getState().loadTransactions();
-    jest.runAllTimers();
+  it('sets isLoading to false after the promise resolves', async () => {
+    await useTransactionStore.getState().loadTransactions();
     expect(useTransactionStore.getState().isLoading).toBe(false);
   });
 
-  it('shows the first page of results after loading', () => {
-    useTransactionStore.getState().loadTransactions();
-    jest.runAllTimers();
+  it('shows the first page of results after loading', async () => {
+    await useTransactionStore.getState().loadTransactions();
     const { visibleTransactions } = useTransactionStore.getState();
     expect(visibleTransactions.length).toBeLessThanOrEqual(5);
+  });
+
+  it('sets error state when the API call fails', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    await useTransactionStore.getState().loadTransactions();
+    expect(useTransactionStore.getState().error).not.toBeNull();
+    expect(useTransactionStore.getState().isLoading).toBe(false);
   });
 });
 
